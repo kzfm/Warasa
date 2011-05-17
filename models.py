@@ -57,6 +57,11 @@ if __name__ == '__main__':
     user.password = 'default'
     db_session.add(user)
     db_session.commit()
+    user = User()
+    user.name = 'user1'
+    user.password = 'test'
+    db_session.add(user)
+    db_session.commit()
 
     for tag in ['test','chemoinformatics','bioinformatics','database','ATD']:
         t = Tag(tag)
