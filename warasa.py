@@ -1,5 +1,6 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from database import db_session
+from models import User
 
 DEBUG      = True
 SECRET_KEY = 'echo inada'
@@ -31,11 +32,12 @@ def show_entries():
 def login():
     error = None
     if request.method == 'POST':
-        user  = db_session.query(Tag).filter(User.name == request.form['username']).filter(User.password == request.form['password']).first()
+        user  = db_session.query(User).filter(User.name == request.form['username']).filter(User.password == request.form['password']).first()
         if  user == None:
             error = 'Invalid username or password'
         else:
             session['logged_in'] = True
+            session['name'] = user.name
             flash('You were logged in')
             return redirect(url_for('show_entries'))
     return render_template('login.html', error=error)
@@ -43,6 +45,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
+    session.pop('name', None)
     flash('You were logged out')
     return redirect(url_for('show_entries'))
 
