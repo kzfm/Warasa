@@ -1,0 +1,17 @@
+<!doctype html>
+<head>
+<title>Warasa</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+<!-- BEGIN entries -->
+<div class=page>
+<a href="{{ url_for('show_entries') }}"><img class=logo src="/static/drkcore_logo_s.png" alt="logo" /></a>
+{% for message in get_flashed_messages() %}
+<div class=flash>{{ message }}</div>
+{% endfor %}
+{% block body %}
+{% endblock %}
+</div>
+<div class=footer>
+<div id=copyright>&copy; 2011 kzfm &lt;kerolinq at gmail.com&gt;</div>
+</div>

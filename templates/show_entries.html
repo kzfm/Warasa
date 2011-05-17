@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class=entries>
+{% for entry in entries %}
+<div class=entry>
+<h2 class=title>{{ entry.title }}</h2>
+{% else %}
+<em>Unbelievable. No entries here so far</em>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
