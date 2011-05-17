@@ -63,6 +63,73 @@ if __name__ == '__main__':
     db_session.add(user)
     db_session.commit()
 
+    entry = Entry()
+    entry.title            = 'SARANEA: a freely available program to mine structure-activity and structure-selectivity relationship information in compound data sets.'
+    entry.pubmed_id        = 20053000
+    entry.doi              = '10.1021/ci900416a'
+    entry.abstract         = '''We introduce SARANEA, an open-source Java application for interactive exploration
+of structure-activity relationship (SAR) and structure-selectivity relationship
+(SSR) information in compound sets of any source. SARANEA integrates various SAR 
+and SSR analysis functions and utilizes a network-like similarity graph data
+structure for visualization. The program enables the systematic detection of
+activity and selectivity cliffs and corresponding key compounds across multiple
+targets. Advanced SAR analysis functions implemented in SARANEA include, among
+others, layered chemical neighborhood graphs, cliff indices, selectivity trees,
+editing functions for molecular networks and pathways, bioactivity summaries of
+key compounds, and markers for bioactive compounds having potential side effects.
+We report the application of SARANEA to identify SAR and SSR determinants in
+different sets of serine protease inhibitors. It is found that key compounds can 
+influence SARs and SSRs in rather different ways. Such compounds and their
+SAR/SSR characteristics can be systematically identified and explored using
+SARANEA. The program and source code are made freely available under the GNU
+General Public License.'''    
+    db_session.add(entry)
+    db_session.commit()
+
+    entry = Entry()
+    entry.title            = 'Computational analysis of activity and selectivity cliffs.'
+    entry.pubmed_id        = 20838966
+    entry.doi              = '10.1007/978-1-60761-839-3_4'
+    entry.abstract         = '''The exploration of structure-activity relationships (SARs) is a major challenge
+in medicinal chemistry and usually focuses on compound potency for individual
+targets. However, selectivity of small molecules that are active against related 
+targets is another critical parameter in chemical lead optimization. Here, an
+integrative approach for the systematic analysis of SARs and
+structure-selectivity relationships (SSRs) of small molecules is presented. The
+computational methodology is described and a cathepsin inhibitor set is used to
+discuss key aspects of the analysis. Combining a numerical scoring scheme and
+graphical visualization of molecular networks, the approach enables the
+identification of different local SAR and SSR environments. Comparative analysis 
+of these environments reveals variable relationships between molecular structure,
+potency, and selectivity. Furthermore, key compounds are identified that are
+involved in the formation of activity and/or selectivity cliffs and often display
+structural features that determine compound selectivity.'''
+    db_session.add(entry)
+    db_session.commit()
+
+    entry = Entry()
+    entry.title            = 'An MCMC algorithm for detecting short adjacent repeats shared by multiple sequences.'
+    entry.pubmed_id        = 21551149
+    entry.doi              = '10.1093/bioinformatics/btr287'
+    entry.abstract         = '''MOTIVATION: Repeats detection problems are traditionally formulated as string
+matching or signal processing problems. They cannot readily handle gaps between
+repeat units and are incapable of detecting repeat patterns shared by multiple
+sequences. This study detects short adjacent repeats with inter-unit insertions
+from multiple sequences. For biological sequences, such studies can shed light on
+molecular structure, biological function, and evolution. RESULTS: The task of
+detecting short adjacent repeats is formulated as a statistical inference problem
+by using a probabilistic generative model. An Markov chain Monte Carlo algorithm 
+is proposed to infer the parameters in a de novo fashion. Its applications on
+synthetic and real biological data show that the new method not only has a
+competitive edge over existing methods, but also can provide a way to study the
+structure and the evolution of repeat-containing genes. AVAILABILITY: The related
+C++ source code and data sets are available at
+http://ihome.cuhk.edu.hk/%7Eb118998/share/BASARD.zip. SUPPLEMENTARY INFORMATION: 
+Supplementary materials are available at the journal's web site. CONTACT:
+xfan@sta.cuhk.edu.hk.'''
+    db_session.add(entry)
+    db_session.commit()
+
     for tag in ['test','chemoinformatics','bioinformatics','database','ATD']:
         t = Tag(tag)
         db_session.add(t)

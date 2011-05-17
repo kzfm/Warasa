@@ -1,6 +1,6 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from database import db_session
-from models import User
+from models import User, Entry
 
 DEBUG      = True
 SECRET_KEY = 'echo inada'
@@ -17,7 +17,8 @@ def after_request(response):
 
 @app.route('/')
 def show_entries():
-    return render_template('show_entries.html', entries=[])
+    entries = db_session.query(Entry).all()
+    return render_template('show_entries.html', entries=entries)
 
 # @app.route('/add', methods=['POST'])
 # def add_entry():
