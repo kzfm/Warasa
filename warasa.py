@@ -1,11 +1,10 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from database import db_session
 from models import User, Entry
+from sqlalchemy.sql.expression import and_
 
 DEBUG      = True
 SECRET_KEY = 'echo inada'
-USERNAME   = 'admin'
-PASSWORD   = 'default'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -33,7 +32,7 @@ def show_entries():
 def login():
     error = None
     if request.method == 'POST':
-        user  = db_session.query(User).filter(User.name == request.form['username']).filter(User.password == request.form['password']).first()
+        user  = db_session.query(User).filter(and_(User.name == request.form['username'],User.password == request.form['password'])).first()
         if  user == None:
             error = 'Invalid username or password'
         else:

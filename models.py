@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- encoding:utf-8 -*-
+
+# kzfm <kerolinq@gmail.com>
+
 from sqlalchemy import Column, Integer, String, Text, DateTime, Table, ForeignKey
 from database import Base,init_db, db_session
 from sqlalchemy.orm import relation, backref, relationship
@@ -57,9 +62,16 @@ if __name__ == '__main__':
     user.password = 'default'
     db_session.add(user)
     db_session.commit()
+
     user = User()
     user.name = 'user1'
     user.password = 'test'
+    db_session.add(user)
+    db_session.commit()
+
+    user = User()
+    user.name = 'user2'
+    user.password = 'test2'
     db_session.add(user)
     db_session.commit()
 
@@ -135,3 +147,30 @@ xfan@sta.cuhk.edu.hk.'''
         db_session.add(t)
     db_session.commit()
         
+    bookmark = Bookmark()
+    bookmark.user_id = 2
+    bookmark.entry_id = 1
+    bookmark.comment = u'テストコメント'
+    db_session.add(bookmark)
+    db_session.commit()
+
+    bookmark = Bookmark()
+    bookmark.user_id = 3
+    bookmark.entry_id = 2
+    bookmark.comment = u'activity cliffの把握は重要'
+    db_session.add(bookmark)
+    db_session.commit()
+
+    comment = Comment()
+    comment.user_id = 3
+    comment.bookmark_id = 2
+    comment.comment = u'そう思う'
+    db_session.add(comment)
+    db_session.commit()
+
+    comment = Comment()
+    comment.user_id = 2
+    comment.bookmark_id = 2
+    comment.comment = u'そう思うかな'
+    db_session.add(comment)
+    db_session.commit()
