@@ -1,6 +1,6 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from database import db_session
-from models import User, Entry
+from models import User, Entry, Bookmark
 from sqlalchemy.sql.expression import and_
 
 DEBUG      = True
@@ -16,8 +16,24 @@ def after_request(response):
 
 @app.route('/')
 def show_entries():
-    entries = db_session.query(Entry).all()
-    return render_template('show_entries.html', entries=entries)
+    bookmarks = db_session.query(Bookmark).all()
+    return render_template('show_entries.html', bookmarks=bookmarks)
+
+@app.route('/home')
+def show_my_entries():
+    bookmarks = db_session.query(Bookmark).filter(Bookmark.user.name == session['name']).all()
+    return render_template('show_entries.html', bookmarks=bookmarks)
+
+@app.route('/entry/<path:doi>')
+def show_entry(doi=None):
+    if doi == None: abort(404)
+
+    entry = db_session.query(Entry).filter(Entry.doi == doi).first()
+
+    if entry == None: 
+        abort(404)
+    else:
+        return render_template('show_entry.html', entry=entry)
 
 # @app.route('/add', methods=['POST'])
 # def add_entry():
@@ -75,6 +91,13 @@ def logout():
     session.pop('name', None)
     flash('You were logged out')
     return redirect(url_for('show_entries'))
+
+#@app.route('/stats/<username>')
+#@app.route('/stats/')
+#def stats():
+#    error = None
+#    return render_template('settings.html', error=error)
+
 
 if __name__ == '__main__':
     app.run()

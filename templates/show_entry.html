@@ -1,10 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class=entries>
-{% for bookmark in bookmarks %}
+<div class=entry>
+<h1>{{ entry.title}}</h1>
+<p>{{ entry.abstract }}</p>
+<p>{{ entry.doi }}</p>
+{% for bookmark in entry.bookmarks %}
   <div class=entry>
-  <h2 class=title>{{ bookmark.entry.title }}</h2>
-  <a href="{{ url_for('show_entry',doi=bookmark.entry.doi) }}">{{ bookmark.entry.doi }}</a>
   <h3>{{ bookmark.user.name }}</h3>
     <p>{{ bookmark.comment }}</p>
     <ul>
