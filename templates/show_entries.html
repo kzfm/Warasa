@@ -2,11 +2,25 @@
 {% block body %}
 <div class=entries>
 {% for entry in entries %}
-<div class=entry>
-<h2 class=title>{{ entry.title }}</h2>
+  <div class=entry>
+  <h2 class=title>{{ entry.title }}</h2>
+  <ul>
+  {% for bookmark in entry.bookmarks -%}
+    <li>{{ bookmark.user.name }}
+    <p>{{ bookmark.comment }}</p>
+    </li>
+    <ul>
+    {% for comment in bookmark.comments -%}
+      <li>{{ comment.user.name }}
+      <p>{{ comment.comment }}</p>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endfor %}
+  </ul>
 {% else %}
-<em>Unbelievable. No entries here so far</em>
-</div>
+  <em>Unbelievable. No entries here so far</em>
+  </div>
 {% endfor %}
 </div>
 {% endblock %}
