@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class=entry>
+<h1>{{ bookmark.entry.title}}</h1>
+<p>{{ bookmark.entry.abstract }}</p>
+<p>{{ bookmark.entry.doi }}</p>
+<div class=bookmark>
+<h3>{{ bookmark.user.name }}</h3>
+<p>{{ bookmark.comment }}</p>
+<ul>
+{% for comment in bookmark.comments -%}
+  <li>{{ comment.user.name }}
+  <p>{{ comment.comment }}</p>
+  </li>
+{% endfor %}
+</ul>
+</div>
+</div>
+{% endblock %}

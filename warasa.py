@@ -35,6 +35,17 @@ def show_entry(doi=None):
     else:
         return render_template('show_entry.html', entry=entry)
 
+@app.route('/bookmark/<int:id>')
+def show_bookmark(id=None):
+    if id == None: abort(404)
+
+    bookmark = db_session.query(Bookmark).filter(Bookmark.id == id).first()
+
+    if bookmark == None: 
+        abort(404)
+    else:
+        return render_template('show_bookmark.html', bookmark=bookmark)
+
 # @app.route('/add', methods=['POST'])
 # def add_entry():
 #     if not session.get('logged_in'):
