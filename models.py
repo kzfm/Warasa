@@ -37,6 +37,7 @@ class Bookmark(Base):
     comment  = Column(Text())
     entry_id = Column(Integer, ForeignKey('entries.id'))
     user_id  = Column(Integer, ForeignKey('users.id'))
+    comments = relationship("Comment", backref="bookmark")
     
 class Comment(Base):
     __tablename__ = 'comments'
@@ -172,5 +173,12 @@ xfan@sta.cuhk.edu.hk.'''
     comment.user_id = 2
     comment.bookmark_id = 2
     comment.comment = u'そう思うかな'
+    db_session.add(comment)
+    db_session.commit()
+
+    comment = Comment()
+    comment.user_id = 3
+    comment.bookmark_id = 2
+    comment.comment = u'コメントがもう少しうまく扱えるように考える'
     db_session.add(comment)
     db_session.commit()

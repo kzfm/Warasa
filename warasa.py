@@ -28,11 +28,38 @@ def show_entries():
 #     g.db.commit()
 #     return redirect(url_for('show_entries'))
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+#### user settings ####
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     error = None
     if request.method == 'POST':
-        user  = db_session.query(User).filter(and_(User.name == request.form['username'],User.password == request.form['password'])).first()
+        user  = db_session.query(User).filter(User.name == request.form['username']).first()
+        if user != None:
+            error = "User is always exists."
+        elif request.form['password'] != request.form['password']:
+            error = "password didn't match"
+        else:
+            user = User()
+            user.name = request.form['username']
+            user.password = request.form['password']
+            db_session.add(user)
+            db_session.commit()
+            session['logged_in'] = True
+            session['name'] = user.name
+            flash('You were registerd')
+            return redirect(url_for('show_entries'))
+
+    return render_template('register.html', error=error)
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    error = None
+    return render_template('settings.html', error=error)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
         if  user == None:
             error = 'Invalid username or password'
         else:
