@@ -40,6 +40,11 @@ class Bookmark(Base):
     comments = relationship("Comment", backref="bookmark")
     
 class Comment(Base):
+    def __init__(self, user_id, bookmark_id, comment):
+        self.comment = comment
+        self.bookmark_id = bookmark_id
+        self.user_id = user_id
+
     __tablename__ = 'comments'
     id          = Column(Integer, primary_key=True)
     comment     = Column(Text())
@@ -162,23 +167,14 @@ xfan@sta.cuhk.edu.hk.'''
     db_session.add(bookmark)
     db_session.commit()
 
-    comment = Comment()
-    comment.user_id = 3
-    comment.bookmark_id = 2
-    comment.comment = u'そう思う'
+    comment = Comment(3, 2, u'そう思う')
     db_session.add(comment)
     db_session.commit()
 
-    comment = Comment()
-    comment.user_id = 2
-    comment.bookmark_id = 2
-    comment.comment = u'そう思うかな'
+    comment = Comment(2, 2, u'そう思うかな')
     db_session.add(comment)
     db_session.commit()
 
-    comment = Comment()
-    comment.user_id = 3
-    comment.bookmark_id = 2
-    comment.comment = u'コメントがもう少しうまく扱えるように考える'
+    comment = Comment(3, 2, u'コメントがもう少しうまく扱えるように考える')
     db_session.add(comment)
     db_session.commit()

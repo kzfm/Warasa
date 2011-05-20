@@ -1,6 +1,6 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from database import db_session
-from models import User, Entry, Bookmark
+from models import User, Entry, Bookmark, Comment
 from sqlalchemy.sql.expression import and_
 
 DEBUG      = True
@@ -46,6 +46,7 @@ def show_bookmark(id=None):
     else:
         return render_template('show_bookmark.html', bookmark=bookmark)
 
+
 # @app.route('/add', methods=['POST'])
 # def add_entry():
 #     if not session.get('logged_in'):
@@ -54,6 +55,22 @@ def show_bookmark(id=None):
 #                  [request.form['title'], request.form['text']])
 #     g.db.commit()
 #     return redirect(url_for('show_entries'))
+
+#### comment ####
+
+@app.route('/comment', methods=['GET', 'POST'])
+def comment():
+    if request.method == 'POST':
+        user_id = session['user_id']
+        bookmark_id = request.form['bookmark_id']
+        comment = request.form['comment']
+
+        comment = Comment(user_id, bookmark_id, comment)
+        db_session.add(comment)
+        db_session.commit()
+
+        return redirect(url_for('show_bookmark', id=bookmark_id))
+    abort(404)
 
 #### user settings ####
 
@@ -64,7 +81,7 @@ def register():
         user  = db_session.query(User).filter(User.name == request.form['username']).first()
         if user != None:
             error = "User is always exists."
-        elif request.form['password'] != request.form['password']:
+        elif request.form['password'] != request.form['retype_password']:
             error = "password didn't match"
         else:
             user = User()
@@ -74,6 +91,7 @@ def register():
             db_session.commit()
             session['logged_in'] = True
             session['name'] = user.name
+            session['user_id'] = user.id
             flash('You were registerd')
             return redirect(url_for('show_entries'))
 
@@ -86,12 +104,15 @@ def settings():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
+        user  = db_session.query(User).filter(and_(User.name == request.form['username'], User.password == request.form['password'])).first()
         if  user == None:
             error = 'Invalid username or password'
         else:
             session['logged_in'] = True
             session['name'] = user.name
+            session['user_id'] = user.id
             flash('You were logged in')
             return redirect(url_for('show_entries'))
     return render_template('login.html', error=error)
