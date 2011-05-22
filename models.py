@@ -6,6 +6,9 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Table, ForeignKey
 from database import Base,init_db, db_session
 from sqlalchemy.orm import relation, backref, relationship
+import hashlib
+
+SALT = 'kzfm'
 
 entry_tags = Table('entry_tags', Base.metadata,
     Column('entry_id', Integer, ForeignKey('entries.id')),
@@ -32,9 +35,16 @@ class Tag(Base):
     entries = relation("Entry", secondary=entry_tags)
 
 class Bookmark(Base):
+    def __init__(self, user_id, entry_id, comment, user_name, doi):
+        self.user_id  = user_id
+        self.entry_id = entry_id
+        self.comment  = comment
+        self.hash     = hashlib.md5(user_name + doi + SALT).hexdigest()
+
     __tablename__ = 'bookmarks'
     id       = Column(Integer, primary_key=True)
     comment  = Column(Text())
+    hash  = Column(String(32), unique=True)
     entry_id = Column(Integer, ForeignKey('entries.id'))
     user_id  = Column(Integer, ForeignKey('users.id'))
     comments = relationship("Comment", backref="bookmark")
@@ -152,18 +162,12 @@ xfan@sta.cuhk.edu.hk.'''
         t = Tag(tag)
         db_session.add(t)
     db_session.commit()
-        
-    bookmark = Bookmark()
-    bookmark.user_id = 2
-    bookmark.entry_id = 1
-    bookmark.comment = u'テストコメント'
+
+    bookmark = Bookmark(2, 1, u'テストコメント', 'user1', '10.1021/ci900416a' )
     db_session.add(bookmark)
     db_session.commit()
 
-    bookmark = Bookmark()
-    bookmark.user_id = 3
-    bookmark.entry_id = 2
-    bookmark.comment = u'activity cliffの把握は重要'
+    bookmark = Bookmark(3, 2, u'activity cliffの把握は重要', 'user2', '10.1007/978-1-60761-839-3_4')
     db_session.add(bookmark)
     db_session.commit()
 

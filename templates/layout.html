@@ -4,8 +4,16 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 </head>
 <!-- BEGIN entries -->
+<div class=header>
+<a href="{{ url_for('show_entries') }}"><img class=logo src="/static/logo.png" alt="logo" /></a>
+{% if session.logged_in %}
+{{ session.name }} (<a href="{{ url_for('logout') }}">logout</a>)
+{% else %}
+<a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> 
+{% endif %}
+
+</div>
 <div class=page>
-<a href="{{ url_for('show_entries') }}"><img class=logo src="/static/drkcore_logo_s.png" alt="logo" /></a>
 {% for message in get_flashed_messages() %}
 <div class=flash>{{ message }}</div>
 {% endfor %}

@@ -35,11 +35,11 @@ def show_entry(doi=None):
     else:
         return render_template('show_entry.html', entry=entry)
 
-@app.route('/bookmark/<int:id>')
-def show_bookmark(id=None):
+@app.route('/bookmark/<string:hash>')
+def show_bookmark(hash=None):
     if id == None: abort(404)
 
-    bookmark = db_session.query(Bookmark).filter(Bookmark.id == id).first()
+    bookmark = db_session.query(Bookmark).filter(Bookmark.hash == hash).first()
 
     if bookmark == None: 
         abort(404)
@@ -56,20 +56,40 @@ def show_bookmark(id=None):
 #     g.db.commit()
 #     return redirect(url_for('show_entries'))
 
-#### comment ####
+#### bookmark ####
 
-@app.route('/comment', methods=['GET', 'POST'])
-def comment():
+@app.route('/bookmark/add', methods=['GET', 'POST'])
+def add_bookmark():
     if request.method == 'POST':
         user_id = session['user_id']
-        bookmark_id = request.form['bookmark_id']
-        comment = request.form['comment']
+        bookmark_hash = request.form['bookmark_hash']
+        comment_data = request.form['comment']
 
-        comment = Comment(user_id, bookmark_id, comment)
+        bookmark_id = db_session.query(Bookmark).filter(Bookmark.hash == bookmark_hash).first().id
+
+        comment = Comment(user_id, bookmark_id, comment_data)
         db_session.add(comment)
         db_session.commit()
 
-        return redirect(url_for('show_bookmark', id=bookmark_id))
+        return redirect(url_for('show_bookmark', hash=bookmark_hash))
+    abort(404)
+
+#### comment ####
+
+@app.route('/comment/add', methods=['GET', 'POST'])
+def add_comment():
+    if request.method == 'POST':
+        user_id = session['user_id']
+        bookmark_hash = request.form['bookmark_hash']
+        comment_data = request.form['comment']
+
+        bookmark_id = db_session.query(Bookmark).filter(Bookmark.hash == bookmark_hash).first().id
+
+        comment = Comment(user_id, bookmark_id, comment_data)
+        db_session.add(comment)
+        db_session.commit()
+
+        return redirect(url_for('show_bookmark', hash=bookmark_hash))
     abort(404)
 
 #### user settings ####

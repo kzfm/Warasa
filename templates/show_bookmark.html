@@ -14,8 +14,8 @@
   </li>
 {% endfor %}
 </ul>
-<form action="{{ url_for('comment') }}" method=post>
-<input type=hidden name=bookmark_id value={{ bookmark.id }}>
+<form action="{{ url_for('add_comment') }}" method=post>
+<input type=hidden name=bookmark_hash value={{ bookmark.hash }}>
 <dl>
 <dt>Post a comment:
 <dd><input type=text name=comment>
