@@ -1,47 +1,70 @@
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask import Flask, request, session, g, \
+    redirect, url_for, abort, render_template, flash
 from database import db_session
 from models import User, Entry, Bookmark, Comment
 from sqlalchemy.sql.expression import and_
 
-DEBUG      = True
+DEBUG = True
 SECRET_KEY = 'echo inada'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
 
 @app.after_request
 def after_request(response):
     db_session.remove()
     return response
 
+
 @app.route('/')
 def show_entries():
     bookmarks = db_session.query(Bookmark).all()
     return render_template('show_entries.html', bookmarks=bookmarks)
 
+
 @app.route('/home')
 def show_my_entries():
-    bookmarks = db_session.query(Bookmark).filter(Bookmark.user.name == session['name']).all()
+    bookmarks = db_session.query(Bookmark)
+    .filter(Bookmark.user.name == session['name'])
+    .all()
     return render_template('show_entries.html', bookmarks=bookmarks)
 
-@app.route('/entry/<path:doi>')
+
+@app.route('/entry/<path:doi>', methods=['GET'])
 def show_entry(doi=None):
-    if doi == None: abort(404)
+    if doi == None:
+        return render_template('entry_form.html', entry=entry)
 
     entry = db_session.query(Entry).filter(Entry.doi == doi).first()
 
-    if entry == None: 
+    if entry == None:
         abort(404)
     else:
         return render_template('show_entry.html', entry=entry)
 
-@app.route('/bookmark/<string:hash>')
+
+@app.route('/entry/<path:doi>', methods=['POST'])
+def add_entry(doi=None):
+    if doi == None:
+        return render_template('add_entry.html', entry=None)
+
+    entry = db_session.query(Entry).filter(Entry.doi == doi).first()
+
+    if entry == None:
+        abort(404)
+    else:
+        return render_template('add_entry.html', entry=entry)
+
+
+@app.route('/bookmark/<string:hash>', methods=['GET', 'POST'])
 def show_bookmark(hash=None):
-    if id == None: abort(404)
+    if id == None:
+        abort(404)
 
     bookmark = db_session.query(Bookmark).filter(Bookmark.hash == hash).first()
 
-    if bookmark == None: 
+    if bookmark == None:
         abort(404)
     else:
         return render_template('show_bookmark.html', bookmark=bookmark)
@@ -58,6 +81,7 @@ def show_bookmark(hash=None):
 
 #### bookmark ####
 
+
 @app.route('/bookmark/add', methods=['GET', 'POST'])
 def add_bookmark():
     if request.method == 'POST':
@@ -65,7 +89,10 @@ def add_bookmark():
         bookmark_hash = request.form['bookmark_hash']
         comment_data = request.form['comment']
 
-        bookmark_id = db_session.query(Bookmark).filter(Bookmark.hash == bookmark_hash).first().id
+        bookmark_id = db_session.query(Bookmark)
+        .filter(Bookmark.hash == bookmark_hash)
+        .first()
+        .id
 
         comment = Comment(user_id, bookmark_id, comment_data)
         db_session.add(comment)
@@ -76,6 +103,7 @@ def add_bookmark():
 
 #### comment ####
 
+
 @app.route('/comment/add', methods=['GET', 'POST'])
 def add_comment():
     if request.method == 'POST':
@@ -83,7 +111,10 @@ def add_comment():
         bookmark_hash = request.form['bookmark_hash']
         comment_data = request.form['comment']
 
-        bookmark_id = db_session.query(Bookmark).filter(Bookmark.hash == bookmark_hash).first().id
+        bookmark_id = db_session.query(Bookmark)
+        .filter(Bookmark.hash == bookmark_hash)
+        .first()
+        .id
 
         comment = Comment(user_id, bookmark_id, comment_data)
         db_session.add(comment)
@@ -94,11 +125,15 @@ def add_comment():
 
 #### user settings ####
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
     if request.method == 'POST':
-        user  = db_session.query(User).filter(User.name == request.form['username']).first()
+        user = db_session.query(User)
+        .filter(User.name == request.form['username'])
+        .first()
+
         if user != None:
             error = "User is always exists."
         elif request.form['password'] != request.form['retype_password']:
@@ -117,16 +152,22 @@ def register():
 
     return render_template('register.html', error=error)
 
+
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     error = None
     return render_template('settings.html', error=error)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        user  = db_session.query(User).filter(and_(User.name == request.form['username'], User.password == request.form['password'])).first()
+        user = db_session.query(User)
+        .filter(and_(User.name == request.form['username'],
+                     User.password == request.form['password']))
+        .first()
+
         if  user == None:
             error = 'Invalid username or password'
         else:
@@ -136,6 +177,7 @@ def login():
             flash('You were logged in')
             return redirect(url_for('show_entries'))
     return render_template('login.html', error=error)
+
 
 @app.route('/logout')
 def logout():

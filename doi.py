@@ -26,7 +26,6 @@ def _extract(d,doi):
     else:
         return "no extractor"
 
-#
 #    title            = Column(String(256), unique=True)
 #    pubmed_id        = Column(Integer, unique=True)
 #    doi              = Column(String(128), unique=True)
