@@ -19,7 +19,7 @@ class Entry(Base):
     __tablename__    = 'entries'
     id               = Column(Integer, primary_key=True)
     title            = Column(String(256), unique=True)
-    pubmed_id        = Column(Integer, unique=True)
+    pubmed_id        = Column(Integer)
     doi              = Column(String(128), unique=True)
     abstract         = Column(Text())
     tags             = relation("Tag", secondary=entry_tags)
