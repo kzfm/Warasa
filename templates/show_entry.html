@@ -1,1 +1,8 @@
-<html>
+{% extends "layout.html" %}
+{% block body %}
+<div class=entries>
+  <div class=entry>
+  <h2 class=title>{{ entry.title }}</h2>
+  <p>{{ entry.abstract }}</p>
+</div>
+{% endblock %}
