@@ -3,6 +3,7 @@ from flask import Flask, request, session, g, \
 from database import db_session
 from models import User, Entry, Bookmark, Comment
 from sqlalchemy.sql.expression import and_
+from doi import get_contents
 
 DEBUG = True
 SECRET_KEY = 'echo inada'
@@ -25,16 +26,16 @@ def show_entries():
 
 @app.route('/home')
 def show_my_entries():
-    bookmarks = db_session.query(Bookmark)
-    .filter(Bookmark.user.name == session['name'])
-    .all()
+    bookmarks = db_session.query(Bookmark).filter(
+            Bookmark.user.name == session['name']).all()
     return render_template('show_entries.html', bookmarks=bookmarks)
 
 
 @app.route('/entry/<path:doi>', methods=['GET'])
+@app.route('/entry/', methods=['GET'])
 def show_entry(doi=None):
     if doi == None:
-        return render_template('entry_form.html', entry=entry)
+        return render_template('entry_form.html')
 
     entry = db_session.query(Entry).filter(Entry.doi == doi).first()
 
@@ -45,11 +46,21 @@ def show_entry(doi=None):
 
 
 @app.route('/entry/<path:doi>', methods=['POST'])
+@app.route('/entry/', methods=['POST'])
 def add_entry(doi=None):
     if doi == None:
-        return render_template('add_entry.html', entry=None)
+        if request.form['doi'] == None:
+            return redirect(url_for('show_entry'))
+        else:
+            ref = get_contents(request.form['doi'])
+            entry = Entry()
+            entry.title = ref['title']
+            entry.doi = ref['doi']
+            entry.abstract = ref['abstract']
+            db_session.add(entry)
+            db_session.commit()
 
-    entry = db_session.query(Entry).filter(Entry.doi == doi).first()
+            return redirect(url_for('show_entry', doi=ref['doi']))
 
     if entry == None:
         abort(404)
@@ -89,10 +100,8 @@ def add_bookmark():
         bookmark_hash = request.form['bookmark_hash']
         comment_data = request.form['comment']
 
-        bookmark_id = db_session.query(Bookmark)
-        .filter(Bookmark.hash == bookmark_hash)
-        .first()
-        .id
+        bookmark_id = db_session.query(Bookmark).filter(
+            Bookmark.hash == bookmark_hash) .first().id
 
         comment = Comment(user_id, bookmark_id, comment_data)
         db_session.add(comment)
@@ -111,10 +120,8 @@ def add_comment():
         bookmark_hash = request.form['bookmark_hash']
         comment_data = request.form['comment']
 
-        bookmark_id = db_session.query(Bookmark)
-        .filter(Bookmark.hash == bookmark_hash)
-        .first()
-        .id
+        bookmark_id = db_session.query(Bookmark).filter(
+            Bookmark.hash == bookmark_hash).first().id
 
         comment = Comment(user_id, bookmark_id, comment_data)
         db_session.add(comment)
@@ -130,9 +137,8 @@ def add_comment():
 def register():
     error = None
     if request.method == 'POST':
-        user = db_session.query(User)
-        .filter(User.name == request.form['username'])
-        .first()
+        user = db_session.query(User).filter(
+            User.name == request.form['username']).first()
 
         if user != None:
             error = "User is always exists."
@@ -163,10 +169,10 @@ def settings():
 def login():
     error = None
     if request.method == 'POST':
-        user = db_session.query(User)
-        .filter(and_(User.name == request.form['username'],
-                     User.password == request.form['password']))
-        .first()
+        user = db_session.query(User).filter(
+            and_(User.name == request.form['username'],
+                 User.password == request.form['password'])
+            ).first()
 
         if  user == None:
             error = 'Invalid username or password'
