@@ -81,33 +81,25 @@ def show_bookmark(hash=None):
         return render_template('show_bookmark.html', bookmark=bookmark)
 
 
-# @app.route('/add', methods=['POST'])
-# def add_entry():
-#     if not session.get('logged_in'):
-#         abort(401)
-#     g.db.execute('insert into entries (title, text) values (?, ?)',
-#                  [request.form['title'], request.form['text']])
-#     g.db.commit()
-#     return redirect(url_for('show_entries'))
-
-#### bookmark ####
-
-
-@app.route('/bookmark/add', methods=['GET', 'POST'])
+@app.route('/bookmark/', methods=['GET', 'POST'])
 def add_bookmark():
     if request.method == 'POST':
         user_id = session['user_id']
-        bookmark_hash = request.form['bookmark_hash']
-        comment_data = request.form['comment']
 
-        bookmark_id = db_session.query(Bookmark).filter(
-            Bookmark.hash == bookmark_hash) .first().id
+        entry_id = db_session.query(Entry).filter(
+            Entry.doi == request.form['doi']).one().id
 
-        comment = Comment(user_id, bookmark_id, comment_data)
-        db_session.add(comment)
+        app.logger.debug('uid: %s, eid: %s, comment: %s, name: %s' %
+                         (user_id, entry_id,
+                          request.form['comment'], session['name'])
+                         )
+
+        bookmark = Bookmark(user_id, entry_id, request.form['comment'],
+                          session['name'], request.form['doi'])
+        db_session.add(bookmark)
         db_session.commit()
 
-        return redirect(url_for('show_bookmark', hash=bookmark_hash))
+        return redirect(url_for('show_bookmark', hash=bookmark.hash))
     abort(404)
 
 #### comment ####

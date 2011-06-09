@@ -1,8 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class=entries>
-  <div class=entry>
-  <h2 class=title>{{ entry.title }}</h2>
-  <p>{{ entry.abstract }}</p>
+<div class=entry>
+<h2 class=title>{{ entry.title }}</h2>
+<p>{{ entry.abstract }}</p>
 </div>
+
+<form action="{{ url_for('add_bookmark') }}" method=post>
+<input type=hidden name=doi value="{{ entry.doi }}">
+<dl>
+<dt>Comment:
+<dd><input type=text name=comment>
+<dd><input type=submit value=register>
+</dl>
+</form>
 {% endblock %}

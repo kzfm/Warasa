@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Register Your Account</h2>
+{% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+<form action="{{ url_for('show_entry') }}" method=post>
+<dl>
+<dt>DOI:
+<dd><input type=text name=doi>
+<dd><input type=submit value=register>
+</dl>
+</form>
+{% endblock %}
