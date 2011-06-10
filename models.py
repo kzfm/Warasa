@@ -4,35 +4,37 @@
 # kzfm <kerolinq@gmail.com>
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, Table, ForeignKey
-from database import Base,init_db, db_session
+from database import Base, init_db, db_session
 from sqlalchemy.orm import relation, backref, relationship
 import hashlib
 
 SALT = 'kzfm'
 
-entry_tags = Table('entry_tags', Base.metadata,
-    Column('entry_id', Integer, ForeignKey('entries.id')),
+bookmark_tags = Table('entry_tags', Base.metadata,
+    Column('bookmark_id', Integer, ForeignKey('bookmarks.id')),
     Column('tag_id', Integer, ForeignKey('tags.id'))
 )
 
+
 class Entry(Base):
-    __tablename__    = 'entries'
-    id               = Column(Integer, primary_key=True)
-    title            = Column(String(256), unique=True)
-    pubmed_id        = Column(Integer)
-    doi              = Column(String(128), unique=True)
-    abstract         = Column(Text())
-    tags             = relation("Tag", secondary=entry_tags)
-    bookmarks        = relationship("Bookmark", backref="entry")
-    
+    __tablename__ = 'entries'
+    id        = Column(Integer, primary_key=True)
+    title     = Column(String(256), unique=True)
+    pubmed_id = Column(Integer)
+    doi       = Column(String(128), unique=True)
+    abstract  = Column(Text())
+    bookmarks = relationship("Bookmark", backref="entry")
+
+
 class Tag(Base):
-    def __init__(self,name):
+    def __init__(self, name):
         self.name = name
 
     __tablename__ = 'tags'
-    id      = Column(Integer, primary_key=True)
-    name    = Column(String(128), unique=True)
-    entries = relation("Entry", secondary=entry_tags)
+    id        = Column(Integer, primary_key=True)
+    name      = Column(String(128), unique=True)
+    bookmarks = relation("Bookmark", secondary=bookmark_tags)
+
 
 class Bookmark(Base):
     def __init__(self, user_id, entry_id, comment, user_name, doi):
@@ -48,7 +50,9 @@ class Bookmark(Base):
     entry_id = Column(Integer, ForeignKey('entries.id'))
     user_id  = Column(Integer, ForeignKey('users.id'))
     comments = relationship("Comment", backref="bookmark")
-    
+    tags     = relation("Tag", secondary=bookmark_tags)
+
+
 class Comment(Base):
     def __init__(self, user_id, bookmark_id, comment):
         self.comment = comment
@@ -61,6 +65,7 @@ class Comment(Base):
     bookmark_id = Column(Integer, ForeignKey('bookmarks.id'))    
     user_id     = Column(Integer, ForeignKey('users.id'))
 
+
 class User(Base):
     __tablename__    = 'users'
     id               = Column(Integer, primary_key=True)
@@ -72,7 +77,7 @@ class User(Base):
 
 if __name__ == '__main__':
     init_db()
-    
+
     user = User()
     user.name = 'admin'
     user.password = 'default'
@@ -92,7 +97,7 @@ if __name__ == '__main__':
     db_session.commit()
 
     entry = Entry()
-    entry.title            = 'SARANEA: a freely available program to mine structure-activity and structure-selectivity relationship information in compound data sets.'
+    entry.title = 'SARANEA: a freely available program to mine structure-activity and structure-selectivity relationship information in compound data sets.'
     entry.pubmed_id        = 20053000
     entry.doi              = '10.1021/ci900416a'
     entry.abstract         = '''We introduce SARANEA, an open-source Java application for interactive exploration
