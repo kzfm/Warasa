@@ -22,9 +22,9 @@ def after_request(response):
 
 
 @app.route('/')
-def show_entries():
+def show_bookmarks():
     bookmarks = db_session.query(Bookmark).all()
-    return render_template('show_entries.html', bookmarks=bookmarks)
+    return render_template('show_bookmarks.html', bookmarks=bookmarks)
 
 
 @app.route('/home')
@@ -38,6 +38,7 @@ def show_my_entries():
 def new_entry(doi=None):
     if doi == None:
         return render_template('entry_form.html')
+
 
 @app.route('/entries/<path:doi>', methods=['GET'])
 @app.route('/entries/', methods=['GET'])
@@ -53,27 +54,19 @@ def show_entry(doi=None):
         return render_template('show_entry.html', entry=entry)
 
 
-@app.route('/entries/<path:doi>', methods=['POST'])
-@app.route('/entries/', methods=['POST'])
+@app.route('/entries', methods=['POST'])
 def add_entry(doi=None):
-    if doi == None:
-        if request.form['doi'] == None:
-            return redirect(url_for('show_entry'))
-        else:
-            ref = get_contents(request.form['doi'])
-            entry = Entry()
-            entry.title = ref['title']
-            entry.doi = ref['doi']
-            entry.abstract = ref['abstract']
-            db_session.add(entry)
-            db_session.commit()
-
-            return redirect(url_for('show_entry', doi=ref['doi']))
-
-    if entry == None:
-        abort(404)
+    if request.form['doi'] == None:
+        return redirect(url_for('show_entry'))
     else:
-        return render_template('add_entry.html', entry=entry)
+        ref = get_contents(request.form['doi'])
+        entry = Entry()
+        entry.title = ref['title']
+        entry.doi = ref['doi']
+        entry.abstract = ref['abstract']
+        db_session.add(entry)
+        db_session.commit()
+        return redirect(url_for('show_entry', doi=ref['doi']))
 
 
 @app.route('/bookmarks/<string:hash>', methods=['GET', 'POST'])
@@ -147,10 +140,10 @@ def _show_entry(doi=None):
     if doi == None:
         entries = []
         for entry in db_session.query(Entry).all():
-            entries.append({ 'title' : entry.title, 
-                             'abstract' : entry.abstract,
-                             'doi' : entry.doi,
-                             'pubmed_id' : entry.pubmed_id
+            entries.append({'title': entry.title,
+                             'abstract': entry.abstract,
+                             'doi': entry.doi,
+                             'pubmed_id': entry.pubmed_id
                              })
         return jsonify(entries=entries)
     else:
@@ -159,11 +152,10 @@ def _show_entry(doi=None):
         if entry == None:
             abort(404)
 
-        return jsonify(title = entry.title, 
-                       abstract = entry.abstract,
-                       doi = entry.doi,
-                       pubmed_id = entry.pubmed_id
-                       )
+        return jsonify(title=entry.title,
+                       abstract=entry.abstract,
+                       doi=entry.doi,
+                       pubmed_id=entry.pubmed_id)
 
 
 @app.route('/v1/entries', methods=['POST'])
@@ -180,10 +172,10 @@ def _add_entry():
         db_session.add(entry)
         db_session.commit()
 
-        return jsonify(title = entry.title, 
-                       abstract = entry.abstract,
-                       doi = entry.doi,
-                       pubmed_id = entry.pubmed_id
+        return jsonify(title=entry.title,
+                       abstract=entry.abstract,
+                       doi=entry.doi,
+                       pubmed_id=entry.pubmed_id
                        )
 
 
@@ -200,7 +192,7 @@ def _delete_entry():
         db_session.delete(entry)
         db_session.commit()
 
-    return jsonify(data = "data removed")
+    return jsonify(data="data removed")
 
 
 # --- Bookmark --- #
@@ -231,7 +223,7 @@ def _show_bookmark(user=None, doi=None):
         if bookmark == None:
             abort(404)
         else:
-            return jsonify(comment = bookmark.comment)
+            return jsonify(comment=bookmark.comment)
 
 
 @app.route('/v1/bookmarks/<string:user>', methods=['POST'])
@@ -250,7 +242,7 @@ def _add_bookmark():
     db_session.add(bookmark)
     db_session.commit()
 
-    return jsonify(comment = bookmark.comment)
+    return jsonify(comment=bookmark.comment)
 
 
 @app.route('/v1/bookmarks/<string:user>/<path:doi>', methods=['DELETE'])
@@ -272,7 +264,7 @@ def _delete_bookmarks():
         db_session.delete(bookmark)
         db_session.commit()
 
-    return jsonify(data = "data removed")
+    return jsonify(data="data removed")
 
 
 # --- comment --- #
@@ -281,24 +273,25 @@ def _delete_bookmarks():
 # DELETE /v1/comments/<user>/<doi>/<id>       -> delete comments
 
 @app.route('/v1/comments/<string:user>/<path:doi>/', methods=['GET'])
-def _show_comment(user=None,doi=None):
+def _show_comment(user=None, doi=None):
     user_id = session['user_id']
     comment_data = request.form['comment']
 
     comments = db_session.query(Comment).join(Bookmark).join(User).filter(
+
         and_(User.name == user,
              Bookmark.doi == doi)
         ).all()
 
     result = []
     for comment in comments:
-        result.append({ 'user': comment.user.name, 'comment' :  comment.comment })
+        result.append({'user': comment.user.name, 'comment': comment.comment})
 
     return jsonify(result)
 
 
 @app.route('/v1/comments/<string:user>/<path:doi>', methods=['POST'])
-def _add_comment(user=None,doi=None):
+def _add_comment(user=None, doi=None):
     user_id = session['user_id']
     bookmark_hash = request.form['bookmark_hash']
     comment_data = request.form['comment']
@@ -310,11 +303,11 @@ def _add_comment(user=None,doi=None):
     db_session.add(comment)
     db_session.commit()
 
-    return jsonify(comment = comment_data)
+    return jsonify(comment=comment_data)
 
 
 @app.route('/v1/comments/<string:user>/<path:doi>/<int:id>', methods=['DELETE'])
-def _delete_comment(user=None,doi=None,id=None):
+def _delete_comment(user=None, doi=None, id=None):
     comment = db_session.query(Comment).join(Bookmark).join(User).filter(
         and_(User.name == user,
              Bookmark.doi == doi,
@@ -323,11 +316,11 @@ def _delete_comment(user=None,doi=None,id=None):
 
     if comment == None:
         abort(404)
-    
+
     db_session.delete(bookmark)
     db_session.commit()
 
-    return jsonify(data = "data removed")
+    return jsonify(data="data removed")
 
 
 #### user settings ####
@@ -380,7 +373,7 @@ def login():
             session['name'] = user.name
             session['user_id'] = user.id
             flash('You were logged in')
-            return redirect(url_for('show_entries'))
+            return redirect(url_for('show_bookmarks'))
     return render_template('login.html', error=error)
 
 
@@ -389,7 +382,7 @@ def logout():
     session.pop('logged_in', None)
     session.pop('name', None)
     flash('You were logged out')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('show_bookmarks'))
 
 
 if __name__ == '__main__':
