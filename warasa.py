@@ -105,7 +105,7 @@ def lookup_current_user():
 @app.route('/')
 def show_bookmarks():
     bookmarks = db.session.query(Bookmark).all()
-    return render_template('show_bookmarks.html', bookmarks=bookmarks)
+    return render_template('index.jade', bookmarks=bookmarks)
 
 
 @app.route('/home')
