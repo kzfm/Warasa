@@ -1,0 +1,28 @@
+!!! 5
+html
+  body
+    head
+      title Warasa
+      link(rel='stylesheet', type='text/css', href="{{ url_for('static', filename='style.css') }}")
+    //
+       BEGIN entries 
+    .header
+      a(href='{{ url_for(\'show_bookmarks\') }}')
+        img.logo(src='/static/logo.png', alt='logo')
+      | {% if session.logged_in %}
+      | {{ session.name }} (
+      a(href='{{ url_for(\'logout\') }}') logout
+      | )
+      | {% else %}
+      a(href='{{ url_for(\'login\') }}') login
+      | or
+      a(href='{{ url_for(\'register\') }}') register
+      | {% endif %}
+    .page
+      | {% for message in get_flashed_messages() %}
+      .flash {{ message }}
+      | {% endfor %}
+      | {% block body %}
+      | {% endblock %}
+    .footer
+      #copyright © 2011 kzfm <kerolinq at gmail.com>

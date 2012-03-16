@@ -1,0 +1,28 @@
+html
+  body
+    | {% extends "layout.html" %}
+    | {% block body %}
+    .entry
+      h1 {{ bookmark.entry.title}}
+      p {{ bookmark.entry.abstract }}
+      p {{ bookmark.entry.doi }}
+      .bookmark
+        h3 {{ bookmark.user.name }}
+        p {{ bookmark.comment }}
+        ul
+          | {% for comment in bookmark.comments -%}
+          li
+            | {{ comment.user.name }}
+            p {{ comment.comment }}
+          | {% endfor %}
+        form(action='{{ url_for(\'add_comment\') }}', method='post')
+          input(type='hidden', name='bookmark_hash', value='{{', bookmark.hash='bookmark.hash')
+          dl
+            dt
+              | Post a comment:
+              dd
+                dd
+                  textarea(name='comment', rows='8', cols='80')
+                  dd
+                    input(type='submit', value='post')
+    | {% endblock %}

@@ -9,7 +9,7 @@
 {% if session.logged_in %}
 {{ session.name }} (<a href="{{ url_for('logout') }}">logout</a>)
 {% else %}
-<a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> 
+<a href="{{ url_for('login') }}">login</a>
 {% endif %}
 
 </div>

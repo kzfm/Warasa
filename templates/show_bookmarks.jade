@@ -1,0 +1,16 @@
+html
+  body
+    | {% extends "layout.html" %}
+    | {% block body %}
+    .entries
+      | {% for bookmark in bookmarks %}
+      .entry
+        h2.title {{ bookmark.entry.title }}
+        a(href='{{ url_for(\'show_entry\',doi=bookmark.entry.doi) }}') {{ bookmark.entry.doi }}
+        h3 {{ bookmark.user.name }}
+        p {{ bookmark.comment }}
+        a(href='{{ url_for(\'show_bookmark\',hash=bookmark.hash) }}') {{ bookmark.comments | length }} comments
+        | {% else %}
+        em Unbelievable. No entries here so far
+      | {% endfor %}
+    | {% endblock %}

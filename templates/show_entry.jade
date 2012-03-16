@@ -1,0 +1,17 @@
+html
+  body
+    | {% extends "layout.html" %}
+    | {% block body %}
+    .entry
+      h2.title {{ entry.title }}
+      p {{ entry.abstract }}
+    form(action='{{ url_for(\'add_bookmark\') }}', method='post')
+      input(type='hidden', name='doi', value='{{ entry.doi }}')
+      dl
+        dt
+          | Comment:
+          dd
+            textarea(name='comment', rows='8', cols='80')
+            dd
+              input(type='submit', value='register')
+    | {% endblock %}

@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class=entries>
+{% for bookmark in bookmarks %}
+  <div class=entry>
+  <h2 class=title>{{ bookmark.entry.title }}</h2>
+  <a href="{{ url_for('show_entry',doi=bookmark.entry.doi) }}">{{ bookmark.entry.doi }}</a>
+  <h3>{{ bookmark.user.name }}</h3>
+    <p>{{ bookmark.comment }}</p>
+    <a href="{{ url_for('show_bookmark',hash=bookmark.hash) }}">{{ bookmark.comments | length }} comments</a>
+{% else %}
+  <em>Unbelievable. No entries here so far</em>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
