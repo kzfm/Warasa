@@ -28,6 +28,12 @@ databese_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'warasa
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % databese_file
 
+bookmark_tags = db.Table('entry_tags',
+    db.Column('bookmark_id', db.Integer, db.ForeignKey('bookmarks.id')),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'))
+)
+
+
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -40,6 +46,55 @@ class User(db.Model):
         self.email = email
         self.openid = openid
 
+
+class Entry(db.Model):
+    __tablename__ = 'entries'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(256), unique=True)
+    pubmed_id = db.Column(db.Integer)
+    doi = db.Column(db.String(128), unique=True)
+    abstract = db.Column(db.Text())
+    bookmarks = db.relationship("Bookmark", backref="entry")
+
+
+class Tag(db.Model):
+    def __init__(self, name):
+        self.name = name
+
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), unique=True)
+    bookmarks = db.relation("Bookmark", secondary=bookmark_tags)
+
+
+class Bookmark(db.Model):
+    def __init__(self, user_id, entry_id, comment):
+        self.user_id = user_id
+        self.entry_id = entry_id
+        self.comment = comment
+
+    __tablename__ = 'bookmarks'
+    id = db.Column(db.Integer, primary_key=True)
+    comment = db.Column(db.Text())
+    entry_id = db.Column(db.Integer, db.ForeignKey('entries.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    comments = db.relationship("Comment", backref="bookmark")
+    tags = db.relation("Tag", secondary=bookmark_tags)
+
+
+class Comment(db.Model):
+    def __init__(self, user_id, bookmark_id, comment):
+        self.comment = comment
+        self.bookmark_id = bookmark_id
+        self.user_id = user_id
+
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    comment = db.Column(db.Text())
+    bookmark_id = db.Column(db.Integer, db.ForeignKey('bookmarks.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+
 # OpenID settings
 oid = OpenID(app, os.path.join(os.path.dirname(__file__), 'openid'))
 
@@ -49,6 +104,7 @@ def lookup_current_user():
     g.user = None
     if 'openid' in session:
         g.user = User.query.filter_by(openid=session['openid']).first()
+
 
 @app.after_request
 def after_request(response):
@@ -372,6 +428,7 @@ def login():
     return render_template('login.jade', next=oid.get_next_url(),
                            error=oid.fetch_error())
 
+
 @oid.after_login
 def create_or_login(resp):
     session['openid'] = resp.identity_url
@@ -383,6 +440,7 @@ def create_or_login(resp):
     return redirect(url_for('create_profile', next=oid.get_next_url(),
                             name=resp.fullname or resp.nickname,
                             email=resp.email))
+
 
 @app.route('/create-profile', methods=['GET', 'POST'])
 def create_profile():
@@ -402,11 +460,13 @@ def create_profile():
             return redirect(oid.get_next_url())
     return render_template('create_profile.jade', next_url=oid.get_next_url())
 
+
 @app.route('/logout')
 def logout():
     session.pop('openid', None)
     flash(u'You were signed out')
     return redirect(oid.get_next_url())
+
 
 if __name__ == '__main__':
     app.run()
