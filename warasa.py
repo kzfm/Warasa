@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # -*- encoding:utf-8 -*-
 
+import os
 from flask import Flask, request, session, g, \
     redirect, url_for, abort, render_template, flash, jsonify
+from flaskext.openid import OpenID
+from flaskext.sqlalchemy import SQLAlchemy
+
 from database import db_session
 from models import User, Entry, Bookmark, Comment
 from sqlalchemy.sql.expression import and_
 from doi import get_contents
+from  werkzeug.urls import url_quote_plus
 
 DEBUG = True
 SECRET_KEY = 'echo inada'
@@ -14,6 +19,36 @@ SECRET_KEY = 'echo inada'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+# settings for jinja
+app.jinja_env.filters['urlencode'] = url_quote_plus
+app.jinja_env.add_extension('pyjade.ext.jinja.PyJadeExtension')
+
+# database settings
+databese_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'warasa.db')
+db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % databese_file
+
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60))
+    email = db.Column(db.String(200))
+    openid = db.Column(db.String(200))
+
+    def __init__(self, name, email, openid):
+        self.name = name
+        self.email = email
+        self.openid = openid
+
+# OpenID settings
+oid = OpenID(app, os.path.join(os.path.dirname(__file__), 'openid'))
+
+
+@app.before_request
+def lookup_current_user():
+    g.user = None
+    if 'openid' in session:
+        g.user = User.query.filter_by(openid=session['openid']).first()
 
 @app.after_request
 def after_request(response):
@@ -325,65 +360,53 @@ def _delete_comment(user=None, doi=None, id=None):
 
 #### user settings ####
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    error = None
-    if request.method == 'POST':
-        user = db_session.query(User).filter(
-            User.name == request.form['username']).first()
-
-        if user != None:
-            error = "User is always exists."
-        elif request.form['password'] != request.form['retype_password']:
-            error = "password didn't match"
-        else:
-            user = User()
-            user.name = request.form['username']
-            user.password = request.form['password']
-            db_session.add(user)
-            db_session.commit()
-            session['logged_in'] = True
-            session['name'] = user.name
-            session['user_id'] = user.id
-            flash('You were registerd')
-            return redirect(url_for('show_entries'))
-
-    return render_template('register.html', error=error)
-
-
-@app.route('/settings', methods=['GET', 'POST'])
-def settings():
-    error = None
-    return render_template('settings.html', error=error)
-
-
 @app.route('/login', methods=['GET', 'POST'])
+@oid.loginhandler
 def login():
-    error = None
+    if g.user is not None:
+        return redirect(oid.get_next_url())
     if request.method == 'POST':
-        user = db_session.query(User).filter(
-            and_(User.name == request.form['username'],
-                 User.password == request.form['password'])
-            ).first()
+        openid = request.form.get('openid')
+        if openid:
+            return oid.try_login(openid, ask_for=['email', 'fullname', 'nickname'])
+    return render_template('login.jade', next=oid.get_next_url(),
+                           error=oid.fetch_error())
 
-        if  user == None:
-            error = 'Invalid username or password'
+@oid.after_login
+def create_or_login(resp):
+    session['openid'] = resp.identity_url
+    user = User.query.filter_by(openid=resp.identity_url).first()
+    if user is not None:
+        flash(u'Successfully signed in')
+        g.user = user
+        return redirect(oid.get_next_url())
+    return redirect(url_for('create_profile', next=oid.get_next_url(),
+                            name=resp.fullname or resp.nickname,
+                            email=resp.email))
+
+@app.route('/create-profile', methods=['GET', 'POST'])
+def create_profile():
+    if g.user is not None or 'openid' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        if not name:
+            flash(u'Error: you have to provide a name')
+        elif '@' not in email:
+            flash(u'Error: you have to enter a valid email address')
         else:
-            session['logged_in'] = True
-            session['name'] = user.name
-            session['user_id'] = user.id
-            flash('You were logged in')
-            return redirect(url_for('show_bookmarks'))
-    return render_template('login.html', error=error)
-
+            flash(u'Profile successfully created')
+            db.session.add(User(name, email, session['openid']))
+            db.session.commit()
+            return redirect(oid.get_next_url())
+    return render_template('create_profile.jade', next_url=oid.get_next_url())
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
-    session.pop('name', None)
-    flash('You were logged out')
-    return redirect(url_for('show_bookmarks'))
-
+    session.pop('openid', None)
+    flash(u'You were signed out')
+    return redirect(oid.get_next_url())
 
 if __name__ == '__main__':
     app.run()
